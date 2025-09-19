@@ -41,11 +41,10 @@ export function TaskList({
     }
   }
 
-  const isPastDate = (task) => {
-    const today = new Date();
-    const taskDate = new Date(task.createdAt);
-    return taskDate < new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  };
+  const today = new Date();
+  const listDate = tasks.length > 0 ? new Date(tasks[0].createdAt) : today;
+  const isPastDate = listDate < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
   const handleCopyTask = (task) => {
     if (openAddTaskModal) {
       openAddTaskModal({
@@ -369,7 +368,7 @@ export function TaskList({
                         isExpanded={expandedTasks[task.id] || false}
                         expandedTasks={expandedTasks}
                         level={0}
-                        isPastDate={isPastDate(task)}
+                        isPastDate={isPastDate}
                         onCopyTask={handleCopyTask}
                       />
                     ))}
@@ -548,7 +547,7 @@ function TaskItem({
           {!isHabit && !isSubtask && (
             <motion.button
               onClick={(e) => onAddSubtask(task.id, e)}
-              className="flex-shrink-0 p-2 opacity-0 group-hover:opacity-100 hover:bg-primary/10 dark:hover:bg-primary/20 rounded-lg transition-all duration-200 mr-4"
+              className="flex-shrink-0 p-2 opacity-0 group-hover:opacity-100 hover:bg-primary/10 dark:hover:bg-primary/20 rounded-lg transition-all duration-200 mr-"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               title="Add subtask"
@@ -559,18 +558,17 @@ function TaskItem({
 
           {/* Completion Circle */}
           <div
-            className="flex-shrink-0 h-12 w-12 flex items-center justify-center"
-            
+            className="flex-shrink-0 h-{{isPastDate ? '16' : '12'}} w-{{isPastDate ? '16' : '12'}} flex items-center justify-center"
           >
             {isPastDate && (
               <motion.button
                 onClick={handleCopyTask}
-                className="flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 mr-4 border-primary/50 hover:border-primary hover:bg-primary/10 border-dotted"
+                className="flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 mr-2 border-primary/50 hover:border-primary hover:bg-primary/10 border-dotted"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 title="Copy to today"
               >
-                <Copy className="h-4 w-4 text-primary dark:text-primary" />
+                <Copy className="h-3 w-3 text-primary dark:text-primary" />
               </motion.button>
             )}
             <motion.button
