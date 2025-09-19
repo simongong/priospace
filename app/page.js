@@ -648,23 +648,27 @@ export default function Home() {
   };
 
   const addTask = ({ title, tagId, taskDate = selectedDate, repeat = 1 }) => {
-  const dateString = getDateString(taskDate);
-  const currentTasks = dailyTasks[dateString] || [];
-  const newTask = {
-    id: Date.now().toString(),
-    title,
-    completed: false,
-    timeSpent: 0,
-    focusTime: 0,
-    createdAt: taskDate,
-    tag: tagId,
-    repeat,
-    initialRepeat: repeat,
-    subtasks: [],
-    subtasksExpanded: false,
+    const dateString = getDateString(taskDate);
+    const currentTasks = dailyTasks[dateString] || [];
+    const newTask = {
+      id: Date.now().toString(),
+      title,
+      completed: false,
+      timeSpent: 0,
+      focusTime: 0,
+      createdAt: taskDate,
+      tag: tagId,
+      repeat,
+      initialRepeat: repeat,
+      subtasks: [],
+      subtasksExpanded: false,
+    };
+    setDailyTasks({ ...dailyTasks, [dateString]: [...currentTasks, newTask] });
+    // reset initialData after addTask
+    if (addTaskInitialData) {
+      setAddTaskInitialData(null);
+    }
   };
-  setDailyTasks({ ...dailyTasks, [dateString]: [...currentTasks, newTask] });
-};
 
   const addSubtask = (parentTaskId, title, tagId) => {
     const dateString = getDateString(selectedDate);
