@@ -32,6 +32,7 @@ export function AddTaskModal({
   customTags,
   onAddCustomTag,
   selectedDate, // Current selected date from parent
+  initialData,
 }) {
   const [taskTitle, setTaskTitle] = useState("");
   const [selectedTag, setSelectedTag] = useState("");
@@ -48,6 +49,21 @@ export function AddTaskModal({
     }
   }, [selectedDate]);
 
+    // set if initialData exists
+  useEffect(() => {
+    if (initialData) {
+      setTaskTitle(initialData.title || "");
+      setSelectedTag(initialData.tag || "");
+      setTaskDate(initialData.createdAt || new Date());
+      setRepeatCount(initialData.repeat || 1);
+    } else {
+      setTaskTitle("");
+      setSelectedTag("");
+      setTaskDate(selectedDate || new Date());
+      setRepeatCount(1);
+    }
+  }, [initialData, selectedDate]);
+  
   // Arrow key navigation for categories
   useEffect(() => {
     const handleKeyDown = (e) => {

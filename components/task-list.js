@@ -10,6 +10,7 @@ import {
   ChevronDown,
   ChevronRight,
   Plus,
+  Copy,
 } from "lucide-react";
 import { formatFocusTime } from "@/utils/time";
 
@@ -20,6 +21,7 @@ export function TaskList({
   onDeleteTask,
   onTaskClick,
   onAddSubtask,
+  openAddTaskModal,
 }) {
   // Use simple object instead of Set for better state management
   const [expandedTasks, setExpandedTasks] = useState({});
@@ -38,6 +40,20 @@ export function TaskList({
       completeAudioRef.current.volume = 0.3;
     }
   }
+
+  const isPastDate = (task) => {
+    const today = new Date();
+    const taskDate = new Date(task.createdAt);
+    return taskDate < new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  };
+  const handleCopyTask = (task) => {
+    if (openAddTaskModal) {
+      openAddTaskModal({
+        ...task,
+        createdAt: new Date(),
+      });
+    }
+  };
 
   const playCompleteSound = () => {
     if (completeAudioRef.current) {
@@ -353,6 +369,8 @@ export function TaskList({
                         isExpanded={expandedTasks[task.id] || false}
                         expandedTasks={expandedTasks}
                         level={0}
+                        isPastDate={isPastDate(task)}
+                        onCopyTask={handleCopyTask}
                       />
                     ))}
                   </motion.div>
@@ -396,6 +414,8 @@ function TaskItem({
   expandedTasks,
   level = 0,
   isSubtask = false,
+  isPastDate = false,
+  onCopyTask,
 }) {
   const tagInfo = getTagInfo(task.tag);
   const subtasks = task.subtasks || [];
@@ -419,6 +439,11 @@ function TaskItem({
   // Calculate proper indentation - only apply to parent tasks with subtasks
   const shouldIndent = hasSubtasks && !isSubtask && level === 0;
   const paddingLeft = isSubtask ? 30 : shouldIndent ? 0 : 0;
+
+  const handleCopyTask = (e) => {
+    e.stopPropagation();
+    if (onCopyTask) onCopyTask(task);
+  };
 
   return (
     <>
@@ -523,7 +548,7 @@ function TaskItem({
           {!isHabit && !isSubtask && (
             <motion.button
               onClick={(e) => onAddSubtask(task.id, e)}
-              className="flex-shrink-0 p-2 opacity-0 group-hover:opacity-100 hover:bg-primary/10 dark:hover:bg-primary/20 rounded-lg transition-all duration-200 mr-2"
+              className="flex-shrink-0 p-2 opacity-0 group-hover:opacity-100 hover:bg-primary/10 dark:hover:bg-primary/20 rounded-lg transition-all duration-200 mr-4"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               title="Add subtask"
@@ -535,8 +560,19 @@ function TaskItem({
           {/* Completion Circle */}
           <div
             className="flex-shrink-0 h-12 w-12 flex items-center justify-center"
-            onClick={(e) => onToggleTask(task.id, e)}
+            
           >
+            {isPastDate && (
+              <motion.button
+                onClick={handleCopyTask}
+                className="flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 mr-4 border-primary/50 hover:border-primary hover:bg-primary/10 border-dotted"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                title="Copy to today"
+              >
+                <Copy className="h-4 w-4 text-primary dark:text-primary" />
+              </motion.button>
+            )}
             <motion.button
               className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 mr-4 ${
                 task.completed
@@ -545,6 +581,7 @@ function TaskItem({
               }`}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
+              onClick={(e) => onToggleTask(task.id, e)}
             >
               <AnimatePresence>
                 {task.completed ? (

@@ -26,6 +26,7 @@ export default function Home() {
   const [showTimer, setShowTimer] = useState(false);
   const [showHabits, setShowHabits] = useState(false);
   const [showAddTask, setShowAddTask] = useState(false);
+  const [addTaskInitialData, setAddTaskInitialData] = useState(null);
   const [showTaskOptions, setShowTaskOptions] = useState(false);
   const [showAddSubtask, setShowAddSubtask] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -641,6 +642,11 @@ export default function Home() {
     }
   };
 
+  const openAddTaskModal = (taskData) => {
+    setAddTaskInitialData(taskData);
+    setShowAddTask(true);
+  };
+
   const addTask = ({ title, tagId, taskDate = selectedDate, repeat = 1 }) => {
   const dateString = getDateString(taskDate);
   const currentTasks = dailyTasks[dateString] || [];
@@ -1028,6 +1034,7 @@ export default function Home() {
                   onDeleteTask={deleteTask}
                   onTaskClick={handleTaskClick}
                   onAddSubtask={handleAddSubtask}
+                  openAddTaskModal={openAddTaskModal}
                 />
               </div>
 
@@ -1194,6 +1201,7 @@ export default function Home() {
                       onDeleteTask={deleteTask}
                       onTaskClick={handleTaskClick}
                       onAddSubtask={handleAddSubtask}
+                      openAddTaskModal={openAddTaskModal}
                     />
                   </div>
                 </div>
@@ -1235,6 +1243,7 @@ export default function Home() {
                 customTags={customTags}
                 onAddCustomTag={addCustomTag}
                 selectedDate={selectedDate}
+                initialData={addTaskInitialData}
               />
             )}
 
