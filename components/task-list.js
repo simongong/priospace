@@ -55,10 +55,15 @@ export function TaskList({
   const handleToggleTask = (taskId, event) => {
     event.stopPropagation();
     const task = findTaskById(taskId);
-    if (!task.completed) {
+    if (task.repeat && task.repeat > 1 && !task.completed) {
+      onToggleTask(taskId, { repeat: task.repeat - 1 });
       playCompleteSound();
+    } else {
+      if (!task.completed) {
+        playCompleteSound();
+      }
+      onToggleTask(taskId);
     }
-    onToggleTask(taskId);
   };
 
   const toggleExpanded = (taskId, event) => {
@@ -542,7 +547,7 @@ function TaskItem({
               whileTap={{ scale: 0.9 }}
             >
               <AnimatePresence>
-                {task.completed && (
+                {task.completed ? (
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
@@ -551,7 +556,17 @@ function TaskItem({
                   >
                     <Check className="h-3 w-3 text-white" />
                   </motion.div>
-                )}
+                ) : task.repeat && task.initialRepeat > 1 ? (
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    exit={{ scale: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="font-bold text-primary dark:text-primary text-base"
+                  >
+                    {task.repeat}
+                  </motion.div>
+                ) : null}
               </AnimatePresence>
             </motion.button>
           </div>
