@@ -672,8 +672,8 @@ export function TaskOptionsModal({
                 </Button>
               )}
 
-              {/* Only show delete button for regular tasks, not habits */}
-              {!task.isHabit && (
+              {/* Only show delete button for regular tasks, and habits */}
+              {(task.isHabit || !task.isHabit) && (
                 <motion.div
                   whileHover={{ scale: 1.01 }}
                   whileTap={{ scale: 0.99 }}
@@ -684,7 +684,11 @@ export function TaskOptionsModal({
                     className="w-full rounded-xl font-extrabold py-4 text-lg shadow-lg"
                   >
                     <Trash2 className="h-5 w-5 mr-2" />
-                    Delete {isSubtask ? "Subtask" : "Task"}
+                    {task.isHabit
+                      ? "Delete Habit"
+                      : isSubtask
+                      ? "Delete Subtask"
+                      : "Delete Task"}
                   </Button>
                 </motion.div>
               )}
