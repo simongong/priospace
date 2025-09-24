@@ -225,18 +225,24 @@ export default function Home() {
 
   const generateDailyHabitTasks = (habits, selectedDate) => {
     const dateString = getDateString(selectedDate);
-    return habits.map((habit) => ({
-      id: `habit-${habit.id}-${dateString}`,
-      title: habit.name,
-      completed: habit.completedDates.includes(dateString),
-      timeSpent: 0,
-      focusTime: 0,
-      createdAt: selectedDate,
-      isHabit: true,
-      habitId: habit.id,
-      tag: habit.tag,
-      subtasks: [], // Habits don't have subtasks
-    }));
+    return habits.map((habit) => {
+      const completedCount = habit.completedCountByDate?.[dateString] || 0;
+      return {
+        id: `habit-${habit.id}-${dateString}`,
+        title: habit.name,
+        // completed: habit.completedDates.includes(dateString),
+        completed: completedCount >= (habit.repeat || 1),
+        completedCount, // 新增
+        repeat: habit.repeat || 1, // 新增
+        timeSpent: 0,
+        focusTime: 0,
+        createdAt: selectedDate,
+        isHabit: true,
+        habitId: habit.id,
+        tag: habit.tag,
+        subtasks: [], // Habits don't have subtasks
+      }
+    });
   };
 
   const importDataFromWebRTC = (data) => {
@@ -616,24 +622,55 @@ export default function Home() {
     const task = findTaskById(id, allTasks);
 
     if (task?.isHabit && task.habitId) {
-      // Handle habit completion
+      // Handle habit completion with repeat
       const updatedHabits = habits.map((habit) => {
         if (habit.id === task.habitId) {
-          const completedDates = task.completed
-            ? habit.completedDates.filter((d) => d !== dateString)
-            : [...habit.completedDates, dateString];
-          return { ...habit, completedDates };
+          const prevCount = habit.completedCountByDate?.[dateString] || 0;
+        let newCount;
+        if (task.completed) {
+          // 撤销一次
+          newCount = Math.max(prevCount - 1, 0);
+        } else {
+          // 完成一次
+          newCount = Math.min(prevCount + 1, habit.repeat || 1);
         }
+        // 更新 completedDates 兼容老逻辑
+        let completedDates = habit.completedDates || [];
+        if (newCount >= (habit.repeat || 1)) {
+          if (!completedDates.includes(dateString)) {
+            completedDates = [...completedDates, dateString];
+          }
+        } else {
+          completedDates = completedDates.filter((d) => d !== dateString);
+        }
+        return {
+          ...habit,
+          completedCountByDate: {
+            ...habit.completedCountByDate,
+            [dateString]: newCount,
+          },
+          completedDates,
+        };
+      }
         return habit;
       });
       setHabits(updatedHabits);
     } else {
         let newUpdates = { ...updates };
-        if (task.repeat && task.repeat > 1 && !task.completed && updates.repeat !== undefined) {
-          newUpdates = { repeat: updates.repeat };
-          if (updates.repeat === 0) {
-            newUpdates.completed = true;
+        if (task.repeat && task.repeat > 1) {
+          // 进度型 task
+          let newCount = (task.completedCount || 0);
+          if (task.completed) {
+            // 撤销一次
+            newCount = Math.max(newCount - 1, 0);
+          } else {
+            // 完成一次
+            newCount = Math.min(newCount + 1, task.repeat);
           }
+          newUpdates = {
+            completedCount: newCount,
+            completed: newCount >= task.repeat,
+          };
         } else {
           newUpdates = { completed: !task.completed };
         }
@@ -659,7 +696,7 @@ export default function Home() {
       createdAt: taskDate,
       tag: tagId,
       repeat,
-      initialRepeat: repeat,
+      completedCount: 0,
       subtasks: [],
       subtasksExpanded: false,
     };

@@ -70,14 +70,17 @@ export function TaskList({
   const handleToggleTask = (taskId, event) => {
     event.stopPropagation();
     const task = findTaskById(taskId);
-    if (task.repeat && task.repeat > 1 && !task.completed) {
-      onToggleTask(taskId, { repeat: task.repeat - 1 });
+    if (task.repeat > 1 && !task.completed) {
+      const newCount = (task.completedCount || 0) + 1;
+      const updates = {
+        completedCount: newCount,
+        completed: newCount >= task.repeat,
+      };
+      onToggleTask(taskId, updates);
       playCompleteSound();
-    } else {
-      if (!task.completed) {
-        playCompleteSound();
-      }
-      onToggleTask(taskId);
+    } else if (!task.completed) {
+      onToggleTask(taskId, { completed: true });
+      playCompleteSound();
     }
   };
 
@@ -591,15 +594,27 @@ function TaskItem({
                   >
                     <Check className="h-3 w-3 text-white" />
                   </motion.div>
-                ) : task.repeat && task.initialRepeat > 1 ? (
+                ) : isHabit && task.repeat && task.repeat > 1 ? (
+                  // habit 进度
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     exit={{ scale: 0 }}
                     transition={{ duration: 0.2 }}
-                    className="font-bold text-primary dark:text-primary text-base"
+                    className="font-bold text-primary dark:text-primary text-xs"
                   >
-                    {task.repeat}
+                    {(task.completedCount || 0)}/{task.repeat}
+                  </motion.div>
+                ) : !isHabit && !task.completed && task.repeat > 1 ?  (
+                  // 普通 task 进度
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    exit={{ scale: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="font-bold text-primary dark:text-primary text-xs"
+                  >
+                    {task.completedCount}/{task.repeat}
                   </motion.div>
                 ) : null}
               </AnimatePresence>

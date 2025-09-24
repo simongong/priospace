@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
@@ -21,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { extractRepeat } from "@/lib/utils";
 
 const PRESET_COLORS = [
   "#ef4444", // red
@@ -43,6 +44,7 @@ export function HabitTracker({
   onAddCustomTag,
 }) {
   const [newHabitName, setNewHabitName] = useState("");
+  const [repeat, setRepeat] = useState(1);
   const [selectedTag, setSelectedTag] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
   const [showAddTag, setShowAddTag] = useState(false);
@@ -50,6 +52,15 @@ export function HabitTracker({
   const [selectedColor, setSelectedColor] = useState(PRESET_COLORS[0]);
   const [currentHabitIndex, setCurrentHabitIndex] = useState(-1); // -1 for overview, 0+ for individual habits
   const [showNavigation, setShowNavigation] = useState(true);
+
+  useEffect(() => {
+    if (newHabitName.trim()) {
+      const count = extractRepeat(newHabitName);
+      setRepeat(count);
+    } else {
+      setRepeat(1);
+    }
+  }, [newHabitName]);
 
   // Generate past 30 days (exactly 30 for 6x5 grid)
   const generatePastDays = () => {
@@ -87,7 +98,9 @@ export function HabitTracker({
         id: Date.now().toString(),
         name: newHabitName.trim(),
         completedDates: [],
+        completedCountByDate: {},
         tag: selectedTag || undefined,
+        repeat,
       };
       onUpdateHabits([...habits, newHabit]);
       setNewHabitName("");
