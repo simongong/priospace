@@ -232,8 +232,8 @@ export default function Home() {
         title: habit.name,
         // completed: habit.completedDates.includes(dateString),
         completed: completedCount >= (habit.repeat || 1),
-        completedCount, // 新增
-        repeat: habit.repeat || 1, // 新增
+        completedCount,
+        repeat: habit.repeat || 1,
         timeSpent: 0,
         focusTime: 0,
         createdAt: selectedDate,
@@ -906,6 +906,17 @@ export default function Home() {
     return newTag.id;
   };
 
+  const updateTag = (id, name, color) => {
+    setCustomTags(customTags.map(tag =>
+      tag.id === id ? { ...tag, name, color } : tag
+    ));
+  };
+
+  const deleteTag = (id) => {
+    setCustomTags(customTags.filter(tag => tag.id !== id));
+    // 可选：同步移除所有 task/habit 上已被删除的 tag
+  };
+
   const handleTaskClick = (task) => {
     setSelectedTask(task);
     setShowTaskOptions(true);
@@ -1262,6 +1273,10 @@ export default function Home() {
                 onExportData={exportData}
                 onImportData={importData}
                 onOpenWebRTCShare={() => setShowWebRTCShare(true)}
+                onAddCustomTag={addCustomTag}
+                onUpdateTag={updateTag}
+                onDeleteTag={deleteTag}
+                customTags={customTags}
               />
             )}
 
